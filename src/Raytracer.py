@@ -1,5 +1,3 @@
-import numpy as np
-
 import CoordinateTransformations as ct
 
 
@@ -7,7 +5,7 @@ class RayTracerScene:
     def __init__(self, objects):
         self.objects = objects
         self.coordinate_systems = ct.CoordinateTransformGraph()
-        self.object_names = [obj.get_name() for obj in objects];
+        self.object_names = [obj.get_name() for obj in objects]
 
         for obj in objects:
             self.coordinate_systems.add_transformation(obj.get_coordinate_system())
@@ -24,5 +22,5 @@ class RayTracerScene:
         raise ValueError(f"Object with name '{name}' not found in the scene.")
 
     def update_object(self, name, updated_object):
-        obj = self.get_object_by_name(name)
+        self.get_object_by_name(name)
         self.coordinate_systems.add_transformation(updated_object.get_coordinate_system())

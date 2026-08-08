@@ -25,10 +25,30 @@ build-backend = "hatchling.build"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "NPY",  # numpy-specific rules
+    # "B",  # bugbear: catches real bugs, but its findings need judgement rather
+    #       # than auto-fixing, so enabling it will block commits until you act
+    #       # on them. Currently it flags 4 things — see the notes from setup.
+]
+# The formatter owns line length; E501 would only fire on lines it cannot split
+# (long strings, URLs in comments) and would block commits over nothing.
+ignore = ["E501"]
+
 [tool.uv]
 package = false
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.6.1",
     "ruff>=0.16.2",
 ]

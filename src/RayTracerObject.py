@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -10,6 +10,7 @@ class RayTracerObject(ABC):
         self.coordinate_system = coordinate_system
         self.name = name
 
+    @abstractmethod
     def surface_normal(self, point: np.ndarray) -> np.ndarray:
         """
         Calculate the surface normal at a given point on the object.
@@ -22,6 +23,7 @@ class RayTracerObject(ABC):
         """
         raise NotImplementedError("Subclasses must implement this method.")
 
+    @abstractmethod
     def surface_height(self, point: np.ndarray) -> float:
         """
         Calculate the surface height at a given point on the object.
