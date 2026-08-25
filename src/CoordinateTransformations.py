@@ -127,30 +127,24 @@ class CoordinateTransformGraph:
             transformation=transformation.invert_transformation(),
         )
 
-    def get_transformation(self, system1: str, system2: str, via: str = "") -> AffineTransformation:
-        if not self.graph.has_node(system1) or not self.graph.has_node(system2):
-            raise ValueError(
-                f"One or both systems '{system1}' and '{system2}' are not in the graph."
-            )
+    def get_transformation(self, From: str, To: str, via: str = "") -> AffineTransformation:
+        if not self.graph.has_node(From) or not self.graph.has_node(To):
+            raise ValueError(f"One or both systems '{From}' and '{To}' are not in the graph.")
 
         try:
             if via and self.graph.has_node(via):
-                path = nx.shortest_path(self.graph, source=system1, target=via, weight=None)
-                path_to_via = nx.shortest_path(self.graph, source=system1, target=via, weight=None)
+                path = nx.shortest_path(self.graph, source=From, target=via, weight=None)
+                path_to_via = nx.shortest_path(self.graph, source=From, target=via, weight=None)
                 if via not in path_to_via:
-                    raise ValueError(
-                        f"No transformation path found from {system1} to {system2} via {via}."
-                    )
-                path_from_via = nx.shortest_path(
-                    self.graph, source=via, target=system2, weight=None
-                )
+                    raise ValueError(f"No transformation path found from {From} to {To} via {via}.")
+                path_from_via = nx.shortest_path(self.graph, source=via, target=To, weight=None)
                 path = path_to_via[:-1] + path_from_via
             else:
-                path = nx.shortest_path(self.graph, source=system1, target=system2)
+                path = nx.shortest_path(self.graph, source=From, target=To)
         except nx.NetworkXNoPath:
-            raise ValueError(f"No transformation path found from {system1} to {system2}.")
+            raise ValueError(f"No transformation path found from {From} to {To}.")
 
-        transformation = AffineTransformation(system1, system1)  # Identity transformation
+        transformation = AffineTransformation(From, From)  # Identity transformation
         for i in range(len(path) - 1):
             edge_data = self.graph.get_edge_data(path[i], path[i + 1])
             transformation = transformation.concatenate(edge_data["transformation"])

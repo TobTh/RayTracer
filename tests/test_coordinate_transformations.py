@@ -2,18 +2,13 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from CoordinateTransformations import AffineTransformation, CoordinateTransformGraph
+from src.CoordinateTransformations import AffineTransformation, CoordinateTransformGraph
+from src.Geometry.Rotations import rotz
 
 # Rotation by +90 degrees about the z axis, in the usual column-vector convention.
 # Because AffineTransformation applies its matrix from the right (p' = p @ M),
 # transforming a row vector with this block yields p @ RZ90.
-RZ90 = np.array(
-    [
-        [0.0, -1.0, 0.0],
-        [1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0],
-    ]
-)
+RZ90 = rotz(np.pi / 2)
 
 
 def valid_matrix(translation=(0.0, 0.0, 0.0), rotation=None) -> np.ndarray:
@@ -140,7 +135,7 @@ class TestTransform:
         # p @ R + t
         np.testing.assert_allclose(
             transformation.transform(points),
-            np.array([[10.0, -1.0, 0.0]]),
+            np.array([[10.0, 1.0, 0.0]]),
             atol=1e-12,
         )
 
@@ -561,3 +556,37 @@ class TestGraphTransformPoints:
 
         with pytest.raises(ValueError, match="not in the graph"):
             graph.transform_points(ORIGIN)
+
+    def test_transforming_to_the_same_system_is_a_no_op(self):
+        graph = chain_graph()
+        points = np.array([[4.0, 5.0, 6.0], [0.0, 0.0, 0.0]])
+
+        np.testing.assert_allclose(
+            graph.transform_points(points, From="A", To="A"),
+            points,
+        )
+
+    def test_transforming_back_and_forth_recovers_the_original_points(self):
+        graph = chain_graph()
+        points = np.array([[4.0, 5.0, 6.0], [0.0, 0.0, 0.0]])
+
+        there = graph.transform_points(points, From="A", To="C")
+        back = graph.transform_points(there, From="C", To="A")
+
+        np.testing.assert_allclose(back, points, atol=1e-12)
+
+    def test_transforming_an_empty_batch_returns_an_empty_batch(self):
+        graph = chain_graph()
+
+        result = graph.transform_points(np.zeros((0, 3)), From="A", To="C")
+
+        assert result.shape == (0, 3)
+
+    def test_transforming_back_and_forth_via_a_detour_recovers_the_original_points(self):
+        graph = inconsistent_diamond()
+        points = np.array([[4.0, 5.0, 6.0], [0.0, 0.0, 0.0]])
+
+        there = graph.transform_points(points, From="A", To="D", Via="C")
+        back = graph.transform_points(there, From="D", To="A", Via="C")
+
+        np.testing.assert_allclose(back, points, atol=1e-12)
