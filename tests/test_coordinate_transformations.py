@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
-from src.CoordinateTransformations import AffineTransformation, CoordinateTransformGraph
-from src.Geometry.Rotations import rotz
+from CoordinateTransformations import AffineTransformation, CoordinateTransformGraph
+from Geometry.Rotations import rotz
 
 # Rotation by +90 degrees about the z axis, in the usual column-vector convention.
 # Because AffineTransformation applies its matrix from the right (p' = p @ M),

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def rotz(theta):
+def rotz(theta: float) -> np.ndarray:
     """
     Returns a rotation matrix for a rotation about the z-axis by an angle theta (in radians).
 
@@ -20,7 +20,7 @@ def rotz(theta):
     return np.array([[c, s, 0], [-s, c, 0], [0, 0, 1]])
 
 
-def roty(theta):
+def roty(theta: float) -> np.ndarray:
     """
     Returns a rotation matrix for a rotation about the y-axis by an angle theta (in radians).
 
@@ -39,7 +39,7 @@ def roty(theta):
     return np.array([[c, 0, -s], [0, 1, 0], [s, 0, c]])
 
 
-def rotx(theta):
+def rotx(theta: float) -> np.ndarray:
     """
     Returns a rotation matrix for a rotation about the x-axis by an angle theta (in radians).
 

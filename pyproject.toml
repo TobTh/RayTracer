@@ -25,6 +25,21 @@ build-backend = "hatchling.build"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+# Pinning the settings here keeps the editor's checker and the command line in
+# agreement; without it they silently disagree about flags like
+# --no-implicit-reexport, which changes whether names such as plt.Axes resolve.
+
+[[tool.mypy.overrides]]
+# matplotlib ships a py.typed marker, but mpl_toolkits (which holds mplot3d and
+# Axes3D) is a separate namespace package that carries no type information at
+# all, so there is nothing for mypy to read. Annotations naming Axes3D are
+# documentation for readers; to the checker it stays Any.
+module = ["mpl_toolkits.*"]
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
@@ -49,6 +64,7 @@ package = false
 
 [dependency-groups]
 dev = [
+    "mypy>=1.18.2",
     "pre-commit>=4.6.1",
     "ruff>=0.16.2",
 ]

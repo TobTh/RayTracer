@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, validate_call
 from pydantic.functional_validators import AfterValidator, BeforeValidator
 
 
-def _to_ndarray(value) -> np.ndarray:
+def _to_ndarray(value: np.ndarray) -> np.ndarray:
     # np.array (unlike np.asarray) always copies, so a caller's array is never
     # aliased into — and later mutated by — the transformation that received it.
     return np.array(value, dtype=float)
@@ -62,7 +62,11 @@ class AffineTransformation(BaseModel):
     matrix: TransformationMatrix = Field(default_factory=lambda: np.eye(4))
 
     def __init__(
-        self, system1: str, system2: str, matrix: np.ndarray | None = None, **data
+        self,
+        system1: str,
+        system2: str,
+        matrix: np.ndarray | None = None,
+        **data: Any,
     ) -> None:
         super().__init__(
             system1=system1,
@@ -78,7 +82,7 @@ class AffineTransformation(BaseModel):
         points = np.atleast_2d(points)
 
         homogeneous_points = np.append(points, np.ones((points.shape[0], 1)), axis=1)
-        transformed_points = (homogeneous_points @ self.matrix)[:, :3]
+        transformed_points: np.ndarray = (homogeneous_points @ self.matrix)[:, :3]
 
         return transformed_points[0] if is_single_point else transformed_points
 
@@ -109,8 +113,23 @@ class AffineTransformation(BaseModel):
 
 
 class CoordinateTransformGraph:
-    def __init__(self):
+    # Nodes are coordinate system names; every edge carries the AffineTransformation
+    # between the two systems it connects, in the direction it points. The annotation
+    # is quoted because networkx's DiGraph is generic to a type checker but not
+    # subscriptable at runtime, and class-level annotations are evaluated eagerly.
+    graph: "nx.DiGraph[str]"
+
+    def __init__(self) -> None:
         self.graph = nx.DiGraph()
+
+    def __str__(self) -> str:
+        coordinate_transformations = []
+        for u, v, data in self.graph.edges(data=True):
+            transformation = data["transformation"]
+            coordinate_transformations.append(
+                f"{transformation.system1} -> {transformation.system2}: {transformation.matrix}"
+            )
+        return "\n".join(coordinate_transformations)
 
     def add_transformation(self, transformation: AffineTransformation) -> None:
 

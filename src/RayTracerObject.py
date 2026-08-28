@@ -64,7 +64,7 @@ class RayTracerObject(ABC):
         """
         raise NotImplementedError("Subclasses must implement this method.")
 
-    def update_coordinate_system(self, new_coordinate_system: ct.AffineTransformation):
+    def update_coordinate_system(self, new_coordinate_system: ct.AffineTransformation) -> None:
         """
         Update the object's coordinate system.
 
@@ -98,8 +98,10 @@ class Plane(RayTracerObject):
         coordinate_system: ct.AffineTransformation,
         name: str = "Plane",
         normalDirection: float = 1.0,
+        xExtent: float = 1.0,
+        yExtent: float = 1.0,
     ):
-        super().__init__(coordinate_system, name, normalDirection)
+        super().__init__(coordinate_system, name, normalDirection, xExtent, yExtent)
 
     def _surface_normal(self, point: np.ndarray) -> np.ndarray:
 
@@ -135,8 +137,10 @@ class Sphere(RayTracerObject):
         radius: float,
         name: str = "Sphere",
         normalDirection: float = 1.0,
+        xExtent: float = 1.0,
+        yExtent: float = 1.0,
     ):
-        super().__init__(coordinate_system, name, normalDirection)
+        super().__init__(coordinate_system, name, normalDirection, xExtent, yExtent)
         self.radius = radius
 
     def _surface_normal(self, point: np.ndarray) -> np.ndarray:
@@ -150,11 +154,11 @@ class Sphere(RayTracerObject):
             -normals * self.normalDirection
         )  # Adjust for normal direction, assuming the default snormal points inward for a sphere
 
-    def _surface_height(self, point: np.ndarray) -> float:
+    def _surface_height(self, point: np.ndarray) -> np.ndarray:
         # For a sphere centered at the origin in its local coordinate system, the height is given by the z-coordinate of the point.
 
         z = np.sqrt(self.radius**2 - point[..., 0] ** 2 - point[..., 1] ** 2)
-        surface_height = (
+        surface_height: np.ndarray = (
             self.radius - z
         )  # Height is the distance from the top of the sphere to the point's z-coordinate
         return surface_height  # Adjust for normal direction
@@ -182,9 +186,9 @@ class Paraboloid(RayTracerObject):
         normals /= np.linalg.norm(normals, axis=-1, keepdims=True)  # Normalize the normals
         return normals * self.normalDirection  # Adjust for normal direction
 
-    def _surface_height(self, point: np.ndarray) -> float:
+    def _surface_height(self, point: np.ndarray) -> np.ndarray:
         # For a paraboloid defined by z = (x^2 + y^2) / (4a), the height is given by this equation.
         x = point[..., 0]
         y = point[..., 1]
-        height = (x**2 + y**2) / (4 * self.a)
+        height: np.ndarray = (x**2 + y**2) / (4 * self.a)
         return height
