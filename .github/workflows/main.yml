@@ -3,33 +3,21 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["pypy3.10", "3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install the latest version of ruff
-        uses: astral-sh/ruff-action@v4.1.0
-        with:
-          version: "latest"
+          enable-cache: true
+          python-version: "3.11"
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      # Update output format to enable automatic inline annotations.
-      - name: Run Ruff
-        run: ruff check --output-format=github .
+        run: uv sync --locked --all-groups
+      # `uv run` transparently creates/uses the project's .venv and installs
+      # the locked dependencies before executing the command, so there is no
+      # need to manually create or activate a virtualenv in this workflow.
+      - name: Run Ruff (lint)
+        run: uv run ruff check --output-format=github .
       - name: Test with pytest
-        run: |
-          pip install pytest pytest-cov
-          pytest tests.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+        run: uv run pytest
       - name: Run mypy
-        uses: sasanquaneuf/mypy-github-action@releases/v1
-        with:
-          checkName: 'mypy'   # NOTE: this needs to be the same as the job name
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run mypy src tests

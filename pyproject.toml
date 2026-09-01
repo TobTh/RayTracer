@@ -67,4 +67,5 @@ dev = [
     "mypy>=1.18.2",
     "pre-commit>=4.6.1",
     "ruff>=0.16.2",
+    "types-networkx>=3.6.1.20260728",
 ]
